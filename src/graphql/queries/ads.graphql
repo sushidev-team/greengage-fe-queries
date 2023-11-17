@@ -1,0 +1,48 @@
+fragment Ads on AdSetting {
+  top {
+    ...AdDetails
+  }
+  billboard {
+    ...AdDetails
+  }
+  right1 {
+    ...AdDetails
+  }
+  right2 {
+    ...AdDetails
+  }
+  left {
+    ...AdDetails
+  }
+  cad1 {
+    ...AdDetails
+  }
+  cad2 {
+    ...AdDetails
+  }
+  cad3 {
+    ...AdDetails
+  }
+  mobile_cad1 {
+    ...AdDetails
+  }
+  mobile_cad2 {
+    ...AdDetails
+  }
+  mobile_top {
+    ...AdDetails
+  }
+  mobile_bottom {
+    ...AdDetails
+  }
+}
+
+fragment AdDetails on AdSettingConfig {
+  id
+  name
+  yieldLab {
+    yieldlabAdslotVal
+    yieldlabAdsCheckId
+  }
+  breakpoints
+}

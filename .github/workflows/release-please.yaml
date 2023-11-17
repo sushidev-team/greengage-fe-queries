@@ -1,0 +1,37 @@
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+
+name: release-please
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+    steps:
+      - name: Release PR
+        uses: google-github-actions/release-please-action@v3
+        id: release
+        with:
+          release-type: node
+          package-name: '@sushidev-team/greengage-fe-queries'
+  release:
+    uses: ./.github/workflows/npm-release.yml
+    needs: [release-please]
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
+    # these if statements ensure that a publication only occurs when
+    # a new release is created:
+    if: ${{ needs.release-please.outputs.release_created }}
