@@ -1,6 +1,16 @@
 import { build, context } from 'esbuild';
 import { nodeExternalsPlugin } from 'esbuild-node-externals';
 import process from 'process';
+import { globSync } from 'glob';
+import fs from 'fs';
+import { stripIgnoredCharacters } from 'graphql';
+import chokidar from 'chokidar';
+
+function bundleGraphQLFiles() {
+  const files = globSync('src/**/*.graphql');
+  const contents = files.map((file) => stripIgnoredCharacters(fs.readFileSync(file, 'utf8'))).join('');
+  fs.writeFileSync('dist/index.graphql', contents, 'utf8');
+}
 
 const sharedConfig = {
   entryPoints: ['src/index.ts'],
@@ -27,7 +37,9 @@ if (process.argv.includes('--watch')) {
   const esmContext = await context(esmConfig);
   await cjsContext.watch();
   await esmContext.watch();
+  chokidar.watch('src/**/*.graphql').on('all', () => bundleGraphQLFiles());
 } else {
-  build(cjsConfig);
-  build(esmConfig);
+  await build(cjsConfig);
+  await build(esmConfig);
+  bundleGraphQLFiles();
 }

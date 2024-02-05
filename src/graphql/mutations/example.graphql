@@ -1,0 +1,6 @@
+mutation ExampleMutation($email: String, $password: String) {
+  login(email: $email, password: $password) {
+    refresh_token
+    token
+  }
+}

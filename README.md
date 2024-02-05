@@ -4,11 +4,9 @@ This repository is a collection of shared GraphQL queries that can be used acros
 
 ## Getting Started
 
-First, create a `.env.local` file and _paste_ all necessary env variables in there. Check the `.env.example` file as a starting point and ask your team for the necessary content.
+First, create a `.env.local` file and paste all necessary env variables in there. Check the `.env.example` file as a starting point and ask your team for the necessary content.
 
-Add the GraphQL extensions from the GraphQL Foundation to your VSCode. This will give you syntax highlighting and autocompletion for GraphQL queries.
-
-After that create a `.npmrc` file and paste the necessary content in there (again ask a team member for the content). This file is necessary to install private packages from the registry.
+Add the GraphQL extensions from the GraphQL Foundation to VSCode. This will give you syntax highlighting and autocompletion for GraphQL queries.
 
 Then, install the dependencies by running `npm install`.
 
@@ -19,6 +17,7 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. This is meant for testing your queries before bundling and publishing.
+You can also use the local_link script by running `npm run local-link` to link this package to your frontend locally. This will make sure that you can use the latest version of this package without having to publish it first.
 
 When writing queries pls make sure to either have the dev server running or run the `gql:watch` script. Only when either of the two is running the automatic code generation will work.
 
@@ -26,17 +25,17 @@ For the production build use `gql:generate`.
 
 ## Usage in other projects
 
-To use this package in other projects follow the steps below to make the project work in your Next.js application. You can see an example also inside the pages folder inside `_app.tsx`, `index.tsx`, `lib/urql`. If you don't need to write your own queries then just skip the `Codegen setup` and move on to `Urql Boilerplate and usage`.
+To use this package in other projects follow the steps below to make the project work in your Next.js application. You can see an example also inside the pages folder inside `_app.tsx`, `index.tsx`, `lib/urql`.
 
 ### Codegen setup
 
-- Install the necessary dev dependencies to be able to write your own queries and generate types:
+- Install the necessary dev dependencies to be able to write queries and generate types:
 
 ```bash
-npm install -D @graphql-codegen/cli @graphql-codegen/introspection @graphql-codegen/typed-document-node @graphql-codegen/typescript @graphql-codegen/typescript-operations @next/env
+npm install -D @graphql-codegen/cli @graphql-codegen/typed-document-node @graphql-codegen/typescript @graphql-codegen/typescript-operations @next/env @parcel/watcher
 ```
 
-- Create a `.graphqlrc.js` file inside the root of your project and paste the following content inside. Replace the url and apiToken with the correct values. Also adapt the gqlPath to your needs. This is the path where the generated types will be saved and where you have to place your graphql files. You can also add a `generateSchema` key with false to the graphqlrc function if you don't want to generate the introspection schema.
+- Create a `.graphqlrc.js` file inside the root of your project and paste the following content inside. Replace the url and apiToken with the correct values. Also adapt the gqlPath to your needs. This is the path where the generated types will be saved and where you have to place your graphql files. You can also add a `generateSchema` key with the value false to the graphqlrc function if you don't want to generate the introspection schema.
 
 ```js
 const { loadEnvConfig } = require('@next/env');
@@ -49,12 +48,12 @@ const { graphqlrc } = require('@sushidev-team/greengage-fe-queries');
 
 module.exports = graphqlrc({
   url: process.env.NEXT_PUBLIC_CMS_API_URL,
-  apiToken: process.env.CMS_API_TOKEN,
+  apiToken: process.env.NEXT_PUBLIC_CMS_API_TOKEN,
   gqlPath: '<Path_to_your_graphql_folder>',
 });
 ```
 
-- Add scripts to your package.json to trigger the code generation. You might also want to extend the dev and build script of your project. Use `gql:generate` for the build script and use `gql:watch` for the dev script with any cli tool made for running multiple scripts simultaneously (e.g. `concurrently`).
+- Add scripts to your package.json to trigger code generation. You might also want to extend the dev and build script of your project. Use `gql:generate` for the build script and use `gql:watch` for the dev script with any cli tool made for running multiple scripts simultaneously (e.g. `concurrently`).
 
 ```json
 {
@@ -78,39 +77,40 @@ Example of your build and dev scripts:
 
 ### Urql Boilerplate
 
-- Paste the following content into `lib/urql.ts` or any other file you want to use for your urql setup. Replace the url and apiToken with the correct values. Also replace the schema import with the correct path to your schema file.
+- Make sure you have the `NEXT_PUBLIC_CMS_API_URL` and `NEXT_PUBLIC_CMS_API_TOKEN` env set.
+- Paste the following content into `lib/urql.ts` or any other file you want to use for your urql setup.
 
 ```ts
 import {
-  createCustomClient,
   createUseQueryHook,
-  createUsePaginatedQueryHook,
-  createUseMutationHook,
   createSsrQuery,
   createSsrCache,
-  createGraphCache,
+  createUseMutationHook,
+  createUsePaginatedQueryHook,
+  createCustomClient,
+  createSsrMutation,
 } from '@sushidev-team/greengage-fe-queries';
-import schema from '<Path_to_your_schema_file>';
 
 const url = process.env.NEXT_PUBLIC_CMS_API_URL ?? '';
 const apiToken = process.env.NEXT_PUBLIC_CMS_API_TOKEN ?? '';
 
-const graphCache = createGraphCache({ schema });
 let ssrCache = createSsrCache();
-
-let client = createCustomClient({ url, apiToken, graphCache, ssrCache });
+let client = createCustomClient({ url, apiToken, ssrCache, includeAuthExchange });
 let ssrQuery = createSsrQuery(client);
-const useQuery = createUseQueryHook();
-const usePaginatedQuery = createUsePaginatedQueryHook();
-const useMutation = createUseMutationHook();
+let ssrMutation = createSsrMutation(client);
 
-function clearSsrCache() {
+const useQuery = createUseQueryHook();
+const useMutation = createUseMutationHook();
+const usePaginatedQuery = createUsePaginatedQueryHook();
+
+function clearCache() {
   ssrCache = createSsrCache();
-  client = createCustomClient({ url, apiToken, graphCache, ssrCache });
+  client = createCustomClient({ url, apiToken, ssrCache, includeAuthExchange });
   ssrQuery = createSsrQuery(client);
+  ssrMutation = createSsrMutation(client);
 }
 
-export { ssrCache, clearSsrCache, client, ssrQuery, useQuery, usePaginatedQuery, useMutation };
+export { client, ssrCache, clearCache, ssrQuery, ssrMutation, useQuery, useMutation, usePaginatedQuery };
 ```
 
 - Add the necessary boiler plate code inside `_app.tsx`:
@@ -126,13 +126,13 @@ export default function MyApp({ pageProps }: AppProps) {
 
   return (
     <UrqlProvider value={client}>
-      <Component {...pageProps} />
+      /** children **/
     </UrqlProvider>
   );
 }
 ```
 
-- Use the useQuery/useMutation hook and ssrQuery function, generated in your urql file, inside your components and pages. For a detailed explanation check out the `Learn More` section down below. This package uses `urql` under the hood so you can also check out their docs for more information. ALWAYS use the hooks and functions provided by this package or the ones generated inside your urql file. DO NOT use the hooks and functions provided by `urql` directly.
+- Use the useQuery/usePaginatedQuery/useMutation hook and ssrQuery/ssrMutation function, generated in your urql file, inside your components and pages. For a detailed explanation check out the `Learn More` section down below. This package uses `urql` under the hood so you can also check out their docs for more information. ALWAYS use the hooks and functions provided by this package or the ones generated inside your urql file. DO NOT use the hooks and functions provided by `urql` directly.
 
 ## Learn More
 
@@ -141,16 +141,21 @@ export default function MyApp({ pageProps }: AppProps) {
 1. Create a new `.graphql` file inside your graphql/queries folder.
 2. Write your query as you would inside the graphql playground.
 3. Either run `npm run dev`, `npm run gql:watch` or `npm run gql:generate` to automatically generate the typed documents and types inside of the `generated.ts` file.
-4. !!! Do not modify any `generated.ts` file. Your changes will be lost as this file gets generated by graphql codegen. !!!
+4. !!! Do not modify any data inside `generated.ts`. Your changes will be lost as this file gets generated by graphql codegen. !!!
 5. Import your typed documents and types from `generated.ts`.
-6. Use your typed documents with the `useQuery/useMutation` hook or use `ssrQuery` for server side rendering. Below you can find usage examples.
+6. Use your typed documents to make requests. Below you can find usage examples.
 
 ### Things to watch out for when writing queries
 
-1. If you are using Fragments, just place them anywhere inside the queries directory.
-2. The `GraphCache` can be easily extended. Check the createGraphCache function to learn more. The most important things are the keys and resolvers. The keys are necessary for eg. fields that don't have a typename. The resolvers are mainly used for pagination in this implementation but can also be used for other things (check the urql docs to learn more about [keys](https://formidable.com/open-source/urql/docs/graphcache/normalized-caching/#custom-keys-and-non-keyable-entities) and [resolvers](https://formidable.com/open-source/urql/docs/graphcache/local-resolvers/)).
-3. Always include id and \_\_typename in your queries. If the field doesn't have an id (like paginated queries) then go to your `urql.ts` file and extend the customKeys object inside the `createGraphCache` by using the typename as key and returning `() => null` as value.
-4. If you are querying a field that is a paginated field always include `first` and `page` as arguments (if your offset and limitArgument is called differently just remember to pass the correct name to the pagination function and include the arguments in your query variables). You can check which fields are paginated by going to the graphCache and checking the `resolvers` object inside the `createGraphCache`.
+1. If you are using Fragments, just place them anywhere inside the queries directory. Graphql code generator will automatically pick them up and generate the necessary types.
+2. The document cache has a quirk regarding cache invalidation. Make sure you are familiar with it. Check the [urql docs](https://formidable.com/open-source/urql/docs/basics/document-caching/#document-cache-gotchas) to learn more.
+3. If you are querying a field that is a paginated field always include `first` and `page` as arguments.
+
+### Clearing the cache
+
+A relative new addition to this package is the ability to clear urql's cache both server and client side.
+On the server you still need to clear the cache once per route/page before making requests. Otherwise the application will just grow in memory usage.
+Now it's also possible to clear the cache client side. The reason why you would want to do this is eg. when auth state changes. If you don't clear the cache the application will still use the old auth state and not the new one which can be a security risk and also lead to unexpected behavior.
 
 ### Paginating a query
 
@@ -167,21 +172,16 @@ When you want to paginate a query simply use the `usePaginatedQuery` hook instea
 }
 ```
 
-Also a quick note on the returned data. The data is always an array which simply contains all the responses from the API for all the fetched pages. So if you want to use the data you should flatten the array. You can use lodash's flatten function for that or write your own logic. Check the example below for more information.
-
-By default the offsetArgument is called `page` if however that is not true for your query you can pass the name of the offsetArgument as the first argument to the `createUsePaginatedQueryHook` function. The second argument is for the `hasMorePagesArgument`. The hook uses this to search the result of the last query executed to search for the flag if more pages are present. If your query returns a different flag for this you can pass the name of the flag as the second argument to the `createUsePaginatedQueryHook` function.
+Also a quick note on the returned data. The data is always an array which simply contains all the responses from the API for all the fetched pages. So if you want to use the data you should flatten the array. You can use flatMap Array method for that or write your own logic. Check the example below for more information.
 
 #### Example
 
 ```tsx
-import { flatten } from 'lodash';
-
 const [{ fetching, stale, data, hasMorePages, fetchNextPage }] = usePaginatedQuery({
   query: GetEntitiesDocument,
   variables,
 });
-// For ease of use I recommend flattening the data array like so (you could also use your own logic to flatten the array e.g. Array.reduce):
-const entities = flatten(entitiesData?.map((data) => data?.entities?.data));
+const entities = entitiesData?.flatMap((data) => data?.entities?.data);
 ```
 
 ### `useQuery` example usage
@@ -244,7 +244,7 @@ if (result.error) {
 ```tsx
 export async function getStaticProps() {
   // This function call has to be the first thing inside getStaticProps or getServerSideProps! Don't forget to include it!
-  clearSsrCache();
+  clearCache();
 
   await ssrQuery({
     query: GetMoviePersonsDocument,
@@ -252,7 +252,7 @@ export async function getStaticProps() {
   });
 
   /**
-   * optionally you can also use the data returned from the query:
+   * Optionally you can also use the data returned from the query. But then double check if you really need the urqlState prop below. Otherwise you will just include the same data twice.
    * const { data } = await ssrQuery({...})
    */
 
@@ -263,4 +263,13 @@ export async function getStaticProps() {
     },
   };
 }
+```
+
+### `ssrMutation` example usage
+
+```tsx
+const { data } = await ssrMutation({
+  query: CustomerLoginDocument,
+  variables: { username: 'test', password: 'test' },
+});
 ```
