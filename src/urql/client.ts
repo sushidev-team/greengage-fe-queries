@@ -1,11 +1,10 @@
-import { devtoolsExchange } from '@urql/devtools';
-import { isEqual } from 'lodash';
 import type { AppProps } from 'next/app';
+import isEqual from 'lodash/isEqual';
 import { useRef, useState } from 'react';
+import { devtoolsExchange } from '@urql/devtools';
 import type {
   AnyVariables,
   DocumentInput,
-  Exchange,
   OperationContext,
   UseQueryArgs,
   UseQueryResponse,
@@ -14,15 +13,22 @@ import type {
   UseMutationResponse,
   UseQueryExecute,
   UseQueryState,
+  OperationResult,
+  Exchange,
 } from 'urql';
 import {
   Provider as UrqlProvider,
   createClient,
+  cacheExchange,
   fetchExchange,
   ssrExchange,
   useQuery as useUrqlQuery,
   useMutation as useUrqlMutation,
 } from 'urql';
+
+/**
+ * Cache
+ */
 
 function createSsrCache() {
   return ssrExchange({ isClient: typeof window !== 'undefined' });
@@ -32,25 +38,39 @@ function restoreSsrCache({ pageProps, ssrCache }: { pageProps: AppProps['pagePro
   pageProps.urqlState && ssrCache.restoreData(pageProps.urqlState);
 }
 
+/**
+ * Client
+ */
+
 function createCustomClient({
   url,
   apiToken,
-  graphCache,
   ssrCache,
+  exchanges,
+  includeCredentials,
 }: {
   url: string;
   apiToken: string;
-  graphCache: Exchange;
   ssrCache: SSRExchange;
+  exchanges?: Exchange[];
+  includeCredentials?: boolean;
 }) {
   return createClient({
     url,
-    exchanges: [devtoolsExchange, graphCache, ssrCache, fetchExchange],
+    exchanges: [devtoolsExchange, cacheExchange, ssrCache, ...(exchanges ? exchanges : []), fetchExchange].filter(
+      // Filter out undefined or null values
+      <T>(val: T): val is NonNullable<T> => val !== null && val !== undefined,
+    ),
     fetchOptions: () => ({
-      headers: { authorization: apiToken },
+      headers: { authorization: `Bearer ${apiToken}` },
+      credentials: includeCredentials ? 'include' : undefined,
     }),
   });
 }
+
+/**
+ * Hooks
+ */
 
 function createUseQueryHook() {
   return function useQuery<Data, Variables extends AnyVariables>(
@@ -58,7 +78,7 @@ function createUseQueryHook() {
       variables: Variables;
     } & UseQueryArgs<Variables, Data>,
   ): UseQueryResponse<Data, Variables> {
-    return useUrqlQuery<Data, Variables>({ ...options });
+    return useUrqlQuery<Data, Variables>(options);
   };
 }
 
@@ -165,18 +185,37 @@ function createUseMutationHook() {
   };
 }
 
+/**
+ * SSR Functions
+ */
+
 function createSsrQuery(client: Client) {
   return async function ssrQuery<Data, Variables extends AnyVariables>(options: {
     query: DocumentInput<Data, Variables>;
     variables: Variables;
     context?: Partial<OperationContext>;
-  }) {
+  }): Promise<OperationResult<Data, Variables>> {
     const context: Partial<OperationContext> = {
+      requestPolicy: 'network-only',
       ...(options.context ?? {}),
-      requestPolicy: options.context?.requestPolicy ? options.context?.requestPolicy : 'network-only',
     };
 
     return await client.query<Data, Variables>(options.query, options.variables, context).toPromise();
+  };
+}
+
+function createSsrMutation(client: Client) {
+  return async function ssrMutation<Data, Variables extends AnyVariables>(options: {
+    query: DocumentInput<Data, Variables>;
+    variables: Variables;
+    context?: Partial<OperationContext>;
+  }): Promise<OperationResult<Data, Variables>> {
+    const context: Partial<OperationContext> = {
+      requestPolicy: 'network-only',
+      ...(options.context ?? {}),
+    };
+
+    return await client.mutation<Data, Variables>(options.query, options.variables, context).toPromise();
   };
 }
 
@@ -186,7 +225,8 @@ export {
   restoreSsrCache,
   createCustomClient,
   createUseQueryHook,
-  createUsePaginatedQueryHook,
   createUseMutationHook,
+  createUsePaginatedQueryHook,
   createSsrQuery,
+  createSsrMutation,
 };

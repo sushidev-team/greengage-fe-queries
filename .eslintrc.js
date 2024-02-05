@@ -7,7 +7,7 @@ module.exports = {
   extends: ['eslint:recommended', 'plugin:prettier/recommended', 'next/core-web-vitals'],
   plugins: [],
   settings: {},
-  ignorePatterns: ['public/*', 'dist/*', 'src/graphql/**/generated.ts'],
+  ignorePatterns: ['public/*', 'dist/*', 'lib/graphql/**/generated.ts'],
   overrides: [
     // typescript
     {
