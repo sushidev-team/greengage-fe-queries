@@ -50,8 +50,8 @@ function createCustomClient({
   includeCredentials,
 }: {
   url: string;
-  apiToken: string;
   ssrCache: SSRExchange;
+  apiToken?: string;
   exchanges?: Exchange[];
   includeCredentials?: boolean;
 }) {
@@ -62,7 +62,7 @@ function createCustomClient({
       <T>(val: T): val is NonNullable<T> => val !== null && val !== undefined,
     ),
     fetchOptions: () => ({
-      headers: { authorization: `Bearer ${apiToken}` },
+      headers: apiToken ? { authorization: `Bearer ${apiToken}` } : undefined,
       credentials: includeCredentials ? 'include' : undefined,
     }),
   });
