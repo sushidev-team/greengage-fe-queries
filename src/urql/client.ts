@@ -74,9 +74,7 @@ function createCustomClient({
 
 function createUseQueryHook() {
   return function useQuery<Data, Variables extends AnyVariables>(
-    options: {
-      variables: Variables;
-    } & UseQueryArgs<Variables, Data>,
+    options: UseQueryArgs<Variables, Data>,
   ): UseQueryResponse<Data, Variables> {
     return useUrqlQuery<Data, Variables>(options);
   };
