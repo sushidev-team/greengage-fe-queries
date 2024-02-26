@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/sushidev-team/greengage-fe-queries/compare/v1.1.1...v1.1.2) (2024-02-26)
+
+
+### Bug Fixes
+
+* option type for useQuery ([fd54b03](https://github.com/sushidev-team/greengage-fe-queries/commit/fd54b03ea0c80dd67af929012a1f0f23ec69da5a))
+
 ## [1.1.1](https://github.com/sushidev-team/greengage-fe-queries/compare/v1.1.0...v1.1.1) (2024-02-06)
 
 
