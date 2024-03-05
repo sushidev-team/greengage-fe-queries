@@ -4,7 +4,7 @@ This repository is a collection of shared GraphQL queries that can be used acros
 
 ## Getting Started
 
-First, create a `.env.local` file and paste all necessary env variables in there. Check the `.env.example` file as a starting point and ask your team for the necessary content.
+First, create a `.env.local` file and paste all necessary env variables in there. Check the `.env.example` file as a starting point.
 
 Add the GraphQL extensions from the GraphQL Foundation to VSCode. This will give you syntax highlighting and autocompletion for GraphQL queries.
 
@@ -17,7 +17,6 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. This is meant for testing your queries before bundling and publishing.
-You can also use the local_link script by running `npm run local-link` to link this package to your frontend locally. This will make sure that you can use the latest version of this package without having to publish it first.
 
 When writing queries pls make sure to either have the dev server running or run the `gql:watch` script. Only when either of the two is running the automatic code generation will work.
 
@@ -35,7 +34,7 @@ To use this package in other projects follow the steps below to make the project
 npm install -D @graphql-codegen/cli @graphql-codegen/typed-document-node @graphql-codegen/typescript @graphql-codegen/typescript-operations @next/env @parcel/watcher
 ```
 
-- Create a `.graphqlrc.js` file inside the root of your project and paste the following content inside. Replace the url and apiToken with the correct values. Also adapt the gqlPath to your needs. This is the path where the generated types will be saved and where you have to place your graphql files. You can also add a `generateSchema` key with the value false to the graphqlrc function if you don't want to generate the introspection schema.
+- Create a `.graphqlrc.js` file inside the root of your project and paste the following content inside. Replace the url and apiToken with the correct values. Also adapt the gqlPath to your needs. This is the path where the generated types will be saved and where you have to place your graphql files.
 
 ```js
 const { loadEnvConfig } = require('@next/env');
@@ -77,7 +76,7 @@ Example of your build and dev scripts:
 
 ### Urql Boilerplate
 
-- Make sure you have the `NEXT_PUBLIC_CMS_API_URL` and `NEXT_PUBLIC_CMS_API_TOKEN` env set.
+- Make sure you have the `NEXT_PUBLIC_CMS_API_URL` env set.
 - Paste the following content into `lib/urql.ts` or any other file you want to use for your urql setup.
 
 ```ts
