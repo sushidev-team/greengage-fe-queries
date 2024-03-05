@@ -198,6 +198,7 @@ export type Mission = {
   asset_full?: Maybe<Scalars['String']>;
   /** Asset type */
   asset_type?: Maybe<AssetType>;
+  completed?: Maybe<Scalars['Boolean']>;
   creator?: Maybe<User>;
   /** This will be filled if the provider is not greengage */
   deeplink?: Maybe<Scalars['String']>;
@@ -677,6 +678,7 @@ export type QueryPoiArgs = {
 
 
 export type QueryPoisArgs = {
+  city?: InputMaybe<Scalars['ID']>;
   page?: InputMaybe<Scalars['Int']>;
 };
 

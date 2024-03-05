@@ -35,5 +35,4 @@ jobs:
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NEXT_PUBLIC_CMS_API_TOKEN: ${{ secrets.CMS_API_TOKEN }}
           NEXT_PUBLIC_CMS_API_URL: ${{ secrets.NEXT_PUBLIC_CMS_API_URL }}
