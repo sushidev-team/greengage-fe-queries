@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/sushidev-team/greengage-fe-queries/compare/v1.2.0...v1.3.0) (2024-03-18)
+
+
+### Features
+
+* update readme ([3728b48](https://github.com/sushidev-team/greengage-fe-queries/commit/3728b48deeaeac6bfca5569ee73362ae5e596012))
+
 ## [1.2.0](https://github.com/sushidev-team/greengage-fe-queries/compare/v1.1.2...v1.2.0) (2024-03-18)
 
 
