@@ -83,36 +83,17 @@ function createUseQueryHook() {
 type PaginatedQueryState<Data, Variables extends AnyVariables> = Omit<UseQueryState<Data, Variables>, 'data'> & {
   data: UseQueryState<Data, Variables>['data'][];
   currentPage: number | null;
-  hasMorePages: boolean;
+  /**
+   * Unfortunately we do not have a `hasMorePages` property, so we have to rely on the user to check if there are more pages.
+   * You can check the last result inside the data array to see if it's empty or not.
+   * If it's empty, there are no more pages.
+   */
   fetchNextPage: () => void;
   fetchPreviousPage: () => void;
   fetchSpecificPage: (page: number) => void;
 };
 
-function createUsePaginatedQueryHook(offsetArgument = 'page', hasMorePagesArgument = 'hasMorePages') {
-  const findHasMorePagesValue = (obj: object): boolean => {
-    let hasMorePagesValue = false;
-
-    const iterate = (obj: object) => {
-      for (const key in obj) {
-        if (key === 'data') break;
-        if (hasMorePagesValue) break;
-
-        const value = obj[key as keyof typeof obj];
-
-        if (key === hasMorePagesArgument) {
-          hasMorePagesValue = value as boolean;
-          break;
-        }
-
-        if (typeof value === 'object') iterate(value);
-      }
-    };
-    iterate(obj);
-
-    return hasMorePagesValue;
-  };
-
+function createUsePaginatedQueryHook(offsetArgument = 'page') {
   return function usePaginatedQuery<Data, Variables extends AnyVariables>(
     options: {
       variables: Variables;
@@ -133,7 +114,6 @@ function createUsePaginatedQueryHook(offsetArgument = 'page', hasMorePagesArgume
       stale: false,
       fetching: true,
       currentPage: null,
-      hasMorePages: false,
       fetchNextPage,
       fetchPreviousPage,
       fetchSpecificPage,
@@ -151,7 +131,6 @@ function createUsePaginatedQueryHook(offsetArgument = 'page', hasMorePagesArgume
       results.current = {
         ...response,
         currentPage: page,
-        hasMorePages: findHasMorePagesValue(response?.data as object),
         data: [...results.current.data, response?.data],
         fetchNextPage,
         fetchPreviousPage,
@@ -165,7 +144,6 @@ function createUsePaginatedQueryHook(offsetArgument = 'page', hasMorePagesArgume
       ...response,
       data: results.current.data,
       currentPage: results.current.currentPage,
-      hasMorePages: results.current.hasMorePages,
       fetchNextPage,
       fetchPreviousPage,
       fetchSpecificPage,
