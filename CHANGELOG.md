@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/sushidev-team/greengage-fe-queries/compare/v1.1.2...v1.2.0) (2024-03-18)
+
+
+### Features
+
+* remove hasMorePages field ([586f144](https://github.com/sushidev-team/greengage-fe-queries/commit/586f1448ce98b18156f42def676a651847a49bce))
+* update code for release ([3195afd](https://github.com/sushidev-team/greengage-fe-queries/commit/3195afdbd58db31182dabaab7b6899368e9329ea))
+
 ## [1.1.2](https://github.com/sushidev-team/greengage-fe-queries/compare/v1.1.1...v1.1.2) (2024-02-26)
 
 
