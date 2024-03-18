@@ -164,7 +164,6 @@ When you want to paginate a query simply use the `usePaginatedQuery` hook instea
 {
   data: Data[];
   currentPage: number | null; // currentPage is null until the first query returned data
-  hasMorePages: boolean;
   fetchNextPage: () => void;
   fetchPreviousPage: () => void;
   fetchSpecificPage: (page: number) => void;
@@ -176,7 +175,7 @@ Also a quick note on the returned data. The data is always an array which simply
 #### Example
 
 ```tsx
-const [{ fetching, stale, data, hasMorePages, fetchNextPage }] = usePaginatedQuery({
+const [{ fetching, stale, data, fetchNextPage }] = usePaginatedQuery({
   query: GetEntitiesDocument,
   variables,
 });
